@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Buy Data | Rich Hub</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f7f7f7;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    label {
+      font-weight: 600;
+      display: block;
+      margin: 15px 0 5px;
+    }
+    select, input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #ffcc00;
+      border: none;
+      color: #000;
+      font-weight: 600;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #e6b800;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+  <h2>Buy Data</h2>
+  <form id="paymentForm">
+    <label for="network">Network:</label>
+    <select id="network" required onchange="updateBundles()">
+      <option value="">Select Network</option>
+      <option value="MTN">MTN</option>
+      <option value="AirtelTigo">AirtelTigo</option>
+    </select>
+
+    <label for="bundle">Data Bundle:</label>
+    <select id="bundle" required>
+      <option value="">Select Bundle</option>
+    </select>
+
+    <label for="phone">Phone Number:</label>
+    <input type="tel" id="phone" placeholder="Enter phone number" required>
+
+    <button type="submit">Pay Now</button>
+  </form>
+</div>
+
+<!-- Paystack inline script -->
+<script src="https://js.paystack.co/v1/inline.js"></script>
+
+<script>
+  const bundleOptions = {
+    MTN: [
+      { text: "1GB - GH₵5.50", amount: 550 },
+      { text: "2GB - GH₵9.50", amount: 950 },
+      { text: "5GB - GH₵22.00", amount: 2200 },
+    ],
+    AirtelTigo: [
+      { text: "1GB - GH₵4.00", amount: 400 },
+      { text: "2GB - GH₵8.00", amount: 800 },
+      { text: "5GB - GH₵19.00", amount: 1900 },
+    ]
+  };
+
+  function updateBundles() {
+    const network = document.getElementById('network').value;
+    const bundle = document.getElementById('bundle');
+    bundle.innerHTML = '<option value="">Select Bundle</option>';
+
+    if (network && bundleOptions[network]) {
+      bundleOptions[network].forEach(option => {
+        let opt = document.createElement('option');
+        opt.value = option.amount;
+        opt.textContent = option.text;
+        bundle.appendChild(opt);
+      });
+    }
+  }
+
+  const paymentForm = document.getElementById('paymentForm');
+
+  paymentForm.addEventListener('submit', payWithPaystack, false);
+
+  function payWithPaystack(e) {
+    e.preventDefault();
+
+    const phone = document.getElementById('phone').value;
+    const amountInPesewas = document.getElementById('bundle').value;
+    const network = document.getElementById('network').value;
+
+    if (!network || !amountInPesewas || !phone) {
+      alert("Please fill in all fields.");
+      return;
+    }
+
+    let handler = PaystackPop.setup({
+      key: 'pk_test_8f35e280a7f3950ffdc6d07985ecdffda295993a', // Replace this with your own Paystack Public Key
+      email: 'customer@example.com', // You can replace with user's email if you collect it
+      amount: amountInPesewas,
+      currency: 'GHS',
+      metadata: {
+        custom_fields: [
+          {
+            display_name: "Phone Number",
+            variable_name: "phone_number",
+            value: phone
+          },
+          {
+            display_name: "Network",
+            variable_name: "network",
+            value: network
+          }
+        ]
+      },
+      callback: function(response) {
+        alert('Payment complete! Reference: ' + response.reference);
+        window.location.href = "thankyou.html"; // Redirect to thank you page after payment
+      },
+      onClose: function() {
+        alert('Transaction cancelled.');
+      }
+    });
+
+    handler.openIframe();
+  }
+</script>
+
+</body>
+</html>
